@@ -1,0 +1,58 @@
+{
+  "name": "@elgavio/code-quality",
+  "version": "0.7.0",
+  "description": "Shared oxlint, Prettier and tsconfig presets",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "oxlint",
+    "prettier.json",
+    "tsconfig"
+  ],
+  "exports": {
+    "./oxlint/base.json": "./oxlint/base.json",
+    "./oxlint/react.json": "./oxlint/react.json",
+    "./oxlint/next.json": "./oxlint/next.json",
+    "./prettier.json": "./prettier.json",
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./package.json": "./package.json"
+  },
+  "prettier": "./prettier.json",
+  "scripts": {
+    "typecheck": "tsc -p fixture",
+    "test": "node scripts/check-presets.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "peerDependencies": {
+    "oxlint": "^1.76.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "prettier": "^3.9.5"
+  },
+  "peerDependenciesMeta": {
+    "oxlint": {
+      "optional": true
+    },
+    "oxlint-tsgolint": {
+      "optional": true
+    },
+    "prettier": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elgavioapp/elgavio-code-quality.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "oxlint": "^1.85.0",
+    "oxlint-tsgolint": "^7.0.2002",
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}

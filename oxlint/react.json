@@ -1,0 +1,20 @@
+{
+  "$schema": "../node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "jsx-a11y"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/display-name": "error",
+    "react/jsx-no-constructed-context-values": "error",
+    "react/no-unescaped-entities": "error",
+    "jsx-a11y/prefer-tag-over-role": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.tsx"],
+      "rules": {
+        "react/jsx-no-constructed-context-values": "off"
+      }
+    }
+  ]
+}
