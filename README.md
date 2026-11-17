@@ -41,12 +41,30 @@ only; `target`, `lib`, `module`, `moduleResolution`, `jsx`, `types` and paths st
 "lint": "oxlint --type-aware --report-unused-disable-directives-severity=error --max-warnings=0 ."
 ```
 
+## Auditing dependencies
+
+`elgavio-audit` runs `npm audit` and fails on any high or critical advisory, except those listed in
+`auditExceptions` in your `package.json`, each with the reason it is let through:
+
+```json
+"scripts": { "audit": "elgavio-audit" },
+"auditExceptions": {
+  "GHSA-xxxx-xxxx-xxxx": "Why it can't be fixed yet, and why it is safe meanwhile."
+}
+```
+
+An exception is only for an advisory with no fixed version yet. It fails the check again by itself
+once a fix installs without a breaking change (run `npm audit fix` and remove the entry), or once
+the advisory no longer affects the project, so it can't outlive its reason.
+
 ## Developing
 
 - `npm test` lints `fixture/` with both presets: `fixture/clean` must pass, and each file in
   `fixture/violations` must raise the rule it's named after. Add a violation file when adding a
   rule worth guarding: oxlint silently ignores a preset it can't load.
 - `npm run typecheck` compiles the fixture against `tsconfig/base.json`.
+- `npm test` also runs `elgavio-audit`'s decisions against made-up `npm audit --json` reports
+  (`scripts/check-audit.mjs`).
 
 ## License
 

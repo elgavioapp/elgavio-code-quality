@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "files": [
+    "audit",
     "oxlint",
     "prettier.json",
     "tsconfig"
@@ -17,12 +18,16 @@
     "./tsconfig/base.json": "./tsconfig/base.json",
     "./package.json": "./package.json"
   },
+  "bin": {
+    "elgavio-audit": "audit/cli.mjs"
+  },
   "prettier": "./prettier.json",
   "scripts": {
     "typecheck": "tsc -p fixture",
-    "test": "node scripts/check-presets.mjs",
+    "test": "node scripts/check-presets.mjs && node scripts/check-audit.mjs",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "audit": "node audit/cli.mjs"
   },
   "peerDependencies": {
     "oxlint": "^1.76.0",
@@ -54,5 +59,8 @@
     "prettier": "^3.9.9",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
+  },
+  "auditExceptions": {
+    "GHSA-fc5q-39xc-vjpf": "picomatch ReDoS, reached only through Vitest: every version is affected, and its patterns are the test runner's own."
   }
 }
