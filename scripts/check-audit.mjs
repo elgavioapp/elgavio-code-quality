@@ -11,36 +11,33 @@ const advisory = (id, severity = 'high') => ({
 const report = (...vulnerabilities) => ({
   vulnerabilities: Object.fromEntries(vulnerabilities.map((v) => [v.name, v])),
 });
-const glob = (fixAvailable, ...via) => ({ name: 'glob', via, fixAvailable });
-const dependent = { name: 'bundler', via: ['glob'], fixAvailable: true };
+const glob = (...via) => ({ name: 'glob', via });
+const dependent = { name: 'bundler', via: ['glob'] };
 
 const reason = { 'GHSA-aaaa': 'no fix yet' };
+const unpatched = () => false;
+const patched = (name, range) => name === 'glob' && range === '<=1.0.0';
 
 // An advisory nobody excepted blocks; a moderate one never does.
 let result = evaluate(
-  report(glob(false, advisory('GHSA-aaaa'), advisory('GHSA-mmmm', 'moderate'))),
+  report(glob(advisory('GHSA-aaaa'), advisory('GHSA-mmmm', 'moderate'))),
   {},
+  unpatched,
 );
 assert.equal(result.blocking.length, 1);
 
-// Excepted with no fix: passes, though a dependent reports a fix of its own.
-result = evaluate(report(glob(false, advisory('GHSA-aaaa')), dependent), reason);
+// Excepted with no fixed version published: passes.
+result = evaluate(report(glob(advisory('GHSA-aaaa')), dependent), reason, unpatched);
 assert.deepEqual(result, { blocking: [], fixed: [], gone: [], excepted: ['GHSA-aaaa'] });
 
-// Only a breaking fix (an object, `isSemVerMajor`): still excepted.
-result = evaluate(
-  report(glob({ name: 'bundler', isSemVerMajor: true }, advisory('GHSA-aaaa'))),
-  reason,
-);
-assert.deepEqual(result.excepted, ['GHSA-aaaa']);
-
-// A fix installs: the exception fails the check.
-result = evaluate(report(glob(true, advisory('GHSA-aaaa'))), reason);
+// A fixed version is published: the exception fails the check, asked about the vulnerable package.
+result = evaluate(report(glob(advisory('GHSA-aaaa')), dependent), reason, patched);
 assert.equal(result.fixed.length, 1);
+assert.deepEqual(result.excepted, []);
 assert.deepEqual(result.gone, []);
 
 // The advisory no longer shows: the exception is stale.
-result = evaluate(report(), reason);
+result = evaluate(report(), reason, unpatched);
 assert.deepEqual(result.gone, ['GHSA-aaaa']);
 
 console.log('audit: every case decided as expected');

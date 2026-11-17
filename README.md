@@ -54,8 +54,10 @@ only; `target`, `lib`, `module`, `moduleResolution`, `jsx`, `types` and paths st
 ```
 
 An exception is only for an advisory with no fixed version yet. It fails the check again by itself
-once a fix installs without a breaking change (run `npm audit fix` and remove the entry), or once
-the advisory no longer affects the project, so it can't outlive its reason.
+once the package publishes a version outside the advisory's vulnerable range (update to it, which
+may take a dependent's major bump, and remove the entry), or once the advisory no longer affects
+the project, so it can't outlive its reason. npm's own `fixAvailable` isn't asked: it can read
+`true` where `npm audit fix` leaves the advisory in place.
 
 ## Developing
 

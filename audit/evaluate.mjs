@@ -5,10 +5,16 @@ const idOf = (advisory) => advisory.url.split('/').at(-1) ?? advisory.url;
 /**
  * Sorts an `npm audit --json` report against the advisories a project lets through.
  *
- * @param {{ vulnerabilities?: Record<string, { name: string, via: (string | { url: string, title: string, severity: string, range: string })[], fixAvailable: unknown }> }} report
+ * npm's own `fixAvailable` can't say whether an excepted advisory has a fix: it reads `true` where
+ * `npm audit fix` changes the tree and leaves the advisory in place. `isPatched` asks the registry
+ * instead.
+ *
+ * @param {{ vulnerabilities?: Record<string, { name: string, via: (string | { url: string, title: string, severity: string, range: string })[] }> }} report
  * @param {Record<string, string>} exceptions Advisory id (`GHSA-…`) to why it is let through.
+ * @param {(name: string, range: string) => boolean} isPatched Whether the package's latest version
+ *   is outside the advisory's vulnerable range.
  */
-export const evaluate = (report, exceptions) => {
+export const evaluate = (report, exceptions, isPatched) => {
   const blocking = [];
   const fixed = [];
   const excepted = new Set();
@@ -24,8 +30,7 @@ export const evaluate = (report, exceptions) => {
       present.add(id);
       if (!Object.hasOwn(exceptions, id)) {
         blocking.push(line);
-      } else if (vulnerability.fixAvailable === true) {
-        // A fix that installs without a breaking change: the exception has outlived its reason.
+      } else if (isPatched(vulnerability.name, advisory.range)) {
         fixed.push(line);
       } else {
         excepted.add(id);

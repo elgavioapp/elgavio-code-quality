@@ -10,14 +10,28 @@ if (audit.stdout === '') {
   console.error(audit.stderr);
   process.exit(1);
 }
-const { blocking, fixed, gone, excepted } = evaluate(JSON.parse(audit.stdout), auditExceptions);
+const view = (spec) => {
+  const result = spawnSync('npm', ['view', spec, 'version', '--json'], { encoding: 'utf8' });
+  const versions = result.stdout.trim() === '' ? [] : JSON.parse(result.stdout);
+  return Array.isArray(versions) ? versions : [versions];
+};
+const isPatched = (name, range) => {
+  const [latest] = view(name);
+  return latest !== undefined && !view(`${name}@${range}`).includes(latest);
+};
+
+const { blocking, fixed, gone, excepted } = evaluate(
+  JSON.parse(audit.stdout),
+  auditExceptions,
+  isPatched,
+);
 
 for (const line of blocking) {
   console.error(`Blocking advisory: ${line}`);
 }
 for (const line of fixed) {
   console.error(
-    `A fix is out for an excepted advisory: ${line}. Run npm audit fix and remove its entry from auditExceptions in package.json.`,
+    `A fixed version is published for an excepted advisory: ${line}. Update to it and remove its entry from auditExceptions in package.json.`,
   );
 }
 for (const id of gone) {
