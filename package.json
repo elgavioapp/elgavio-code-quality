@@ -59,8 +59,5 @@
     "prettier": "^3.9.9",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
-  },
-  "auditExceptions": {
-    "GHSA-fc5q-39xc-vjpf": "picomatch ReDoS, reached only through Vitest: every version is affected, and its patterns are the test runner's own."
   }
 }
