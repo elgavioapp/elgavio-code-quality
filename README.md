@@ -43,7 +43,8 @@ only; `target`, `lib`, `module`, `moduleResolution`, `jsx`, `types` and paths st
 
 ## Auditing dependencies
 
-`elgavio-audit` runs `npm audit` and fails on any high or critical advisory, except those listed in
+`elgavio-audit` runs `npm audit` and fails on any high or critical advisory, and on a moderate one
+in a runtime dependency (what `npm audit --omit=dev` reports), except those listed in
 `auditExceptions` in your `package.json`, each with the reason it is let through:
 
 ```json

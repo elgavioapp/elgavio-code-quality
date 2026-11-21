@@ -5,11 +5,14 @@ import { evaluate } from './evaluate.mjs';
 
 const { auditExceptions = {} } = JSON.parse(readFileSync('package.json', 'utf8'));
 
-const audit = spawnSync('npm', ['audit', '--json'], { encoding: 'utf8' });
-if (audit.stdout === '') {
-  console.error(audit.stderr);
-  process.exit(1);
-}
+const audit = (...flags) => {
+  const result = spawnSync('npm', ['audit', '--json', ...flags], { encoding: 'utf8' });
+  if (result.stdout === '') {
+    console.error(result.stderr);
+    process.exit(1);
+  }
+  return JSON.parse(result.stdout);
+};
 const view = (spec) => {
   const result = spawnSync('npm', ['view', spec, 'version', '--json'], { encoding: 'utf8' });
   const versions = result.stdout.trim() === '' ? [] : JSON.parse(result.stdout);
@@ -21,7 +24,7 @@ const isPatched = (name, range) => {
 };
 
 const { blocking, fixed, gone, excepted } = evaluate(
-  JSON.parse(audit.stdout),
+  { all: audit(), runtime: audit('--omit=dev') },
   auditExceptions,
   isPatched,
 );

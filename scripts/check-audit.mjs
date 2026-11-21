@@ -18,26 +18,45 @@ const reason = { 'GHSA-aaaa': 'no fix yet' };
 const unpatched = () => false;
 const patched = (name, range) => name === 'glob' && range === '<=1.0.0';
 
-// An advisory nobody excepted blocks; a moderate one never does.
+// `all` is the whole tree's report, `runtime` the one without dev dependencies.
+const both = (...vulnerabilities) => ({
+  all: report(...vulnerabilities),
+  runtime: report(...vulnerabilities),
+});
+const devOnly = (...vulnerabilities) => ({ all: report(...vulnerabilities), runtime: report() });
+
+// A high advisory nobody excepted blocks wherever it is; a moderate one only in the runtime.
 let result = evaluate(
-  report(glob(advisory('GHSA-aaaa'), advisory('GHSA-mmmm', 'moderate'))),
+  devOnly(glob(advisory('GHSA-aaaa'), advisory('GHSA-mmmm', 'moderate'))),
   {},
   unpatched,
 );
 assert.equal(result.blocking.length, 1);
+result = evaluate(both(glob(advisory('GHSA-mmmm', 'moderate'))), {}, unpatched);
+assert.equal(result.blocking.length, 1);
+result = evaluate(both(glob(advisory('GHSA-llll', 'low'))), {}, unpatched);
+assert.equal(result.blocking.length, 0);
+
+// Reported by both, it is one advisory.
+result = evaluate(both(glob(advisory('GHSA-aaaa'))), {}, unpatched);
+assert.equal(result.blocking.length, 1);
+
+// An excepted moderate one in the runtime passes, and is still there to be found stale.
+result = evaluate(both(glob(advisory('GHSA-aaaa', 'moderate')), dependent), reason, unpatched);
+assert.deepEqual(result, { blocking: [], fixed: [], gone: [], excepted: ['GHSA-aaaa'] });
 
 // Excepted with no fixed version published: passes.
-result = evaluate(report(glob(advisory('GHSA-aaaa')), dependent), reason, unpatched);
+result = evaluate(both(glob(advisory('GHSA-aaaa')), dependent), reason, unpatched);
 assert.deepEqual(result, { blocking: [], fixed: [], gone: [], excepted: ['GHSA-aaaa'] });
 
 // A fixed version is published: the exception fails the check, asked about the vulnerable package.
-result = evaluate(report(glob(advisory('GHSA-aaaa')), dependent), reason, patched);
+result = evaluate(both(glob(advisory('GHSA-aaaa')), dependent), reason, patched);
 assert.equal(result.fixed.length, 1);
 assert.deepEqual(result.excepted, []);
 assert.deepEqual(result.gone, []);
 
 // The advisory no longer shows: the exception is stale.
-result = evaluate(report(), reason, unpatched);
+result = evaluate(both(), reason, unpatched);
 assert.deepEqual(result.gone, ['GHSA-aaaa']);
 
 console.log('audit: every case decided as expected');
