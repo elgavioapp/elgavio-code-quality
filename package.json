@@ -24,6 +24,7 @@
   "prettier": "./prettier.json",
   "scripts": {
     "typecheck": "tsc -p fixture",
+    "check": "npm run format:check && npm run typecheck",
     "test": "node scripts/check-presets.mjs && node scripts/check-audit.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
